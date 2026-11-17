@@ -1,0 +1,11 @@
+{
+  "name": "buyandsell-monorepo",
+  "version": "1.0.0",
+  "description": "Hostel Marketplace MERN Stack Application",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev"
+  },
+  "keywords": ["mern", "hostel", "marketplace"],
+  "license": "ISC"
+}
