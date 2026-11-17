@@ -154,7 +154,7 @@ const registerUser = async (req, res, next) => {
         userExists.lastOtpSentAt = new Date();
         await userExists.save();
 
-        await sendEmail({
+        const emailResult = await sendEmail({
           to: cleanEmail,
           subject: 'Verify your CampusBazzar Account - OTP',
           html: `<div style="font-family:sans-serif;padding:20px;max-width:500px;border:1px solid #e2e8f0;border-radius:16px;">
@@ -171,6 +171,7 @@ const registerUser = async (req, res, next) => {
           isEmailVerified: false,
           email: userExists.email,
           message: 'An unverified account exists with this email. A fresh verification code has been dispatched to your inbox.',
+          ...(process.env.NODE_ENV !== 'production' || emailResult?.simulated ? { devOtp: otp } : {}),
         });
       }
       return res.status(400).json({ message: 'An account with this email already exists. Please sign in.' });
@@ -432,7 +433,7 @@ const registerUser = async (req, res, next) => {
     });
 
     // Dispatch verification email
-    await sendEmail({
+    const emailResult = await sendEmail({
       to: cleanEmail,
       subject: 'Verify your CampusBazzar Account - OTP',
       html: `<div style="font-family:sans-serif;padding:20px;max-width:500px;border:1px solid #e2e8f0;border-radius:16px;">
@@ -449,6 +450,7 @@ const registerUser = async (req, res, next) => {
       isEmailVerified: false,
       email: user.email,
       message: 'Account created! Please enter the 6-digit verification code sent to your email to activate your account.',
+      ...(process.env.NODE_ENV !== 'production' || emailResult?.simulated ? { devOtp: otp } : {}),
     });
   } catch (error) {
     next(error);
@@ -690,7 +692,7 @@ const resendEmailOtp = async (req, res, next) => {
     user.lastOtpSentAt = new Date();
     await user.save();
 
-    await sendEmail({
+    const emailResult = await sendEmail({
       to: cleanEmail,
       subject: 'New Verification Code - CampusBazzar',
       html: `<div style="font-family:sans-serif;padding:20px;max-width:500px;border:1px solid #e2e8f0;border-radius:16px;">
@@ -705,6 +707,7 @@ const resendEmailOtp = async (req, res, next) => {
     res.json({
       success: true,
       message: 'A new 6-digit verification code has been dispatched to your email.',
+      ...(process.env.NODE_ENV !== 'production' || emailResult?.simulated ? { devOtp: otp } : {}),
     });
   } catch (error) {
     next(error);
@@ -1097,11 +1100,13 @@ const sendOtp = async (req, res, next) => {
 
     console.log(`[CAMPUSBAZZAR OTP] Generated OTP for ${cleanIdentifier} (${purpose}): ${otp}`);
 
-    // If identifier is an email (or user has registered email), send real email via Nodemailer
+    let emailResult = { success: true };
+
+    // If identifier is an email, send real email via Nodemailer
     if (isEmail) {
       const subject = purpose === 'forgot_password'
-        ? `CampusBazzar - Password Reset OTP Code: ${otp}`
-        : `CampusBazzar Verification Code: ${otp}`;
+        ? `CampusBazzar - Password Reset OTP Code`
+        : `CampusBazzar Verification Code`;
 
       const htmlContent = `
         <div style="font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;max-width:540px;margin:0 auto;background:#ffffff;border:1px solid #e2e8f0;border-radius:18px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.06);">
@@ -1133,7 +1138,7 @@ const sendOtp = async (req, res, next) => {
       `;
 
       try {
-        await sendEmail({
+        emailResult = await sendEmail({
           to: cleanIdentifier,
           subject,
           html: htmlContent,
@@ -1141,9 +1146,7 @@ const sendOtp = async (req, res, next) => {
         });
       } catch (emailErr) {
         console.error('[sendOtp] Failed to deliver email:', emailErr.message);
-        return res.status(500).json({
-          message: 'Failed to deliver OTP to your email. Please check your email address or try again in a few moments.',
-        });
+        emailResult = { success: false };
       }
     } else if (process.env.SMS_API_KEY) {
       try {
@@ -1162,7 +1165,6 @@ const sendOtp = async (req, res, next) => {
         ? `A 6-digit password reset code has been sent to ${cleanIdentifier}. Please check your inbox (and spam folder).`
         : `OTP sent successfully to ******${cleanIdentifier.slice(-4)}! Valid for 10 minutes.`,
       identifier: cleanIdentifier,
-      ...(process.env.NODE_ENV !== 'production' ? { devOtp: otp } : {}),
     });
   } catch (error) {
     next(error);

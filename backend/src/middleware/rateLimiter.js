@@ -16,7 +16,8 @@ setInterval(() => {
 
 const createOtpRateLimiter = ({ windowMs = 15 * 60 * 1000, max = 5, message = 'Too many attempts. Please try again later.' }) => {
   return (req, res, next) => {
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const ip = typeof rawIp === 'string' ? rawIp.split(',')[0].trim() : 'unknown';
     const key = `${req.baseUrl || ''}${req.path}:${ip}`;
     const now = Date.now();
 
