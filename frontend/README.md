@@ -1,16 +1,29 @@
-# React + Vite
+# CampusBazzar
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A student-to-student marketplace for NIT Patna's Patna and Bihta campuses. Hostellers can list items they no longer need, find what they want nearby, and connect with sellers by call or chat.
 
-Currently, two official plugins are available:
+## Features
+- Browse listings across all 12 NITP hostels, with campus, hostel and condition filters
+- Category browsing (books, notes, food, bottles, stationery, appliances, cycles) and custom categories
+- Sort by hostel relevance (nearest first) and search by title or description
+- Three signup types: sign in, NITP Direct (college email) and New Seller (any email)
+- Seller dashboard to add and manage listings
+- In-app chat plus a call button on each product page
+- Light and dark mode
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
+React · Node.js · Express · MongoDB · JWT authentication · Nodemailer (email OTP)
 
-## React Compiler
+## Getting Started
+1. Clone the repo: `git clone <your-repo-url>`
+2. Install dependencies in both folders: `npm install`
+3. Create a `.env` file (see `.env.example`) with your MongoDB URI, JWT secret and email settings
+4. Run the backend and frontend: `npm run dev`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Roadmap
+- Email and phone OTP verification
+- Seller ratings and reviews
+- Wishlist and notifications
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Author
+Built by Fazal, NIT Patna.
