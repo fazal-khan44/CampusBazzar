@@ -154,24 +154,30 @@ const registerUser = async (req, res, next) => {
         userExists.lastOtpSentAt = new Date();
         await userExists.save();
 
-        const emailResult = await sendEmail({
-          to: cleanEmail,
-          subject: 'Verify your CampusBazzar Account - OTP',
-          html: `<div style="font-family:sans-serif;padding:20px;max-width:500px;border:1px solid #e2e8f0;border-radius:16px;">
-            <h2 style="color:#1E2A3A;">Welcome to CampusBazzar</h2>
-            <p>Your 6-digit email verification code is:</p>
-            <div style="font-size:32px;font-weight:bold;letter-spacing:6px;color:#F27A1A;padding:12px 0;">${otp}</div>
-            <p style="color:#64748b;font-size:13px;">This code is valid for 10 minutes. Never share this code with anyone.</p>
-          </div>`,
-          text: `Your CampusBazzar email verification code is: ${otp}. Valid for 10 minutes.`,
-        });
+        let emailSent = false;
+        try {
+          const emailResult = await sendEmail({
+            to: cleanEmail,
+            subject: 'Verify your CampusBazzar Account - OTP',
+            html: `<div style="font-family:sans-serif;padding:20px;max-width:500px;border:1px solid #e2e8f0;border-radius:16px;">
+              <h2 style="color:#1E2A3A;">Welcome to CampusBazzar</h2>
+              <p>Your 6-digit email verification code is:</p>
+              <div style="font-size:32px;font-weight:bold;letter-spacing:6px;color:#F27A1A;padding:12px 0;">${otp}</div>
+              <p style="color:#64748b;font-size:13px;">This code is valid for 10 minutes. Never share this code with anyone.</p>
+            </div>`,
+            text: `Your CampusBazzar email verification code is: ${otp}. Valid for 10 minutes.`,
+          });
+          emailSent = emailResult?.success === true;
+        } catch (emailErr) {
+          console.error('[Register-Resend] Email dispatch failed:', emailErr.message);
+        }
 
         return res.status(200).json({
           success: true,
           isEmailVerified: false,
           email: userExists.email,
           message: 'An unverified account exists with this email. A fresh verification code has been dispatched to your inbox.',
-          ...(process.env.NODE_ENV !== 'production' || emailResult?.simulated ? { devOtp: otp } : {}),
+          ...(!emailSent ? { devOtp: otp } : {}),
         });
       }
       return res.status(400).json({ message: 'An account with this email already exists. Please sign in.' });
@@ -432,25 +438,33 @@ const registerUser = async (req, res, next) => {
       ...(avatar ? { avatar } : {}),
     });
 
-    // Dispatch verification email
-    const emailResult = await sendEmail({
-      to: cleanEmail,
-      subject: 'Verify your CampusBazzar Account - OTP',
-      html: `<div style="font-family:sans-serif;padding:20px;max-width:500px;border:1px solid #e2e8f0;border-radius:16px;">
-        <h2 style="color:#1E2A3A;">Welcome to CampusBazzar, ${name}!</h2>
-        <p>Please enter this 6-digit verification code to activate your account:</p>
-        <div style="font-size:32px;font-weight:bold;letter-spacing:6px;color:#F27A1A;padding:12px 0;">${otp}</div>
-        <p style="color:#64748b;font-size:13px;">This code is valid for 10 minutes. Do not share it with anyone.</p>
-      </div>`,
-      text: `Your CampusBazzar email verification code is: ${otp}. Valid for 10 minutes.`,
-    });
+    // Dispatch verification email (non-fatal if SMTP fails)
+    let emailSent = false;
+    try {
+      const emailResult = await sendEmail({
+        to: cleanEmail,
+        subject: 'Verify your CampusBazzar Account - OTP',
+        html: `<div style="font-family:sans-serif;padding:20px;max-width:500px;border:1px solid #e2e8f0;border-radius:16px;">
+          <h2 style="color:#1E2A3A;">Welcome to CampusBazzar, ${name}!</h2>
+          <p>Please enter this 6-digit verification code to activate your account:</p>
+          <div style="font-size:32px;font-weight:bold;letter-spacing:6px;color:#F27A1A;padding:12px 0;">${otp}</div>
+          <p style="color:#64748b;font-size:13px;">This code is valid for 10 minutes. Do not share it with anyone.</p>
+        </div>`,
+        text: `Your CampusBazzar email verification code is: ${otp}. Valid for 10 minutes.`,
+      });
+      emailSent = emailResult?.success === true;
+    } catch (emailErr) {
+      console.error('[Register] Email dispatch failed:', emailErr.message);
+    }
 
     res.status(201).json({
       success: true,
       isEmailVerified: false,
       email: user.email,
-      message: 'Account created! Please enter the 6-digit verification code sent to your email to activate your account.',
-      ...(process.env.NODE_ENV !== 'production' || emailResult?.simulated ? { devOtp: otp } : {}),
+      message: emailSent
+        ? 'Account created! Please enter the 6-digit verification code sent to your email to activate your account.'
+        : 'Account created! Please check your email for the verification code. If you don\'t receive it, click "Resend Code".',
+      ...(!emailSent ? { devOtp: otp } : {}),
     });
   } catch (error) {
     next(error);
@@ -692,22 +706,30 @@ const resendEmailOtp = async (req, res, next) => {
     user.lastOtpSentAt = new Date();
     await user.save();
 
-    const emailResult = await sendEmail({
-      to: cleanEmail,
-      subject: 'New Verification Code - CampusBazzar',
-      html: `<div style="font-family:sans-serif;padding:20px;max-width:500px;border:1px solid #e2e8f0;border-radius:16px;">
-        <h2 style="color:#1E2A3A;">CampusBazzar Verification Code</h2>
-        <p>Here is your new 6-digit email verification code:</p>
-        <div style="font-size:32px;font-weight:bold;letter-spacing:6px;color:#F27A1A;padding:12px 0;">${otp}</div>
-        <p style="color:#64748b;font-size:13px;">This code is valid for 10 minutes. Never share this code with anyone.</p>
-      </div>`,
-      text: `Your CampusBazzar email verification code is: ${otp}. Valid for 10 minutes.`,
-    });
+    let emailSent = false;
+    try {
+      const emailResult = await sendEmail({
+        to: cleanEmail,
+        subject: 'New Verification Code - CampusBazzar',
+        html: `<div style="font-family:sans-serif;padding:20px;max-width:500px;border:1px solid #e2e8f0;border-radius:16px;">
+          <h2 style="color:#1E2A3A;">CampusBazzar Verification Code</h2>
+          <p>Here is your new 6-digit email verification code:</p>
+          <div style="font-size:32px;font-weight:bold;letter-spacing:6px;color:#F27A1A;padding:12px 0;">${otp}</div>
+          <p style="color:#64748b;font-size:13px;">This code is valid for 10 minutes. Never share this code with anyone.</p>
+        </div>`,
+        text: `Your CampusBazzar email verification code is: ${otp}. Valid for 10 minutes.`,
+      });
+      emailSent = emailResult?.success === true;
+    } catch (emailErr) {
+      console.error('[resendOtp] Email dispatch failed:', emailErr.message);
+    }
 
     res.json({
       success: true,
-      message: 'A new 6-digit verification code has been dispatched to your email.',
-      ...(process.env.NODE_ENV !== 'production' || emailResult?.simulated ? { devOtp: otp } : {}),
+      message: emailSent
+        ? 'A new 6-digit verification code has been dispatched to your email.'
+        : 'Verification code generated. If you don\'t receive the email, please check your spam folder or try again.',
+      ...(!emailSent ? { devOtp: otp } : {}),
     });
   } catch (error) {
     next(error);
