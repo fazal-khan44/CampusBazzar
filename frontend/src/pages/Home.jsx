@@ -32,6 +32,7 @@ import {
   MapPin,
   Building,
   Dumbbell,
+  MoreHorizontal,
 } from 'lucide-react';
 
 const iconMap = {
@@ -48,6 +49,7 @@ const iconMap = {
   Shirt,
   Layers,
   Dumbbell,
+  MoreHorizontal,
 };
 
 const Home = () => {
@@ -162,25 +164,6 @@ const Home = () => {
 
   const availableHostels =
     selectedCampus !== 'All' ? getHostelsForCampus(selectedCampus) : [];
-
-  const productCategories = Array.from(new Set(products.map((p) => p.category))).filter(Boolean);
-  const presetIds = PRESET_CATEGORIES.map((c) => c.id);
-  const legacyAliases = [
-    'Food & Munchies',
-    'Bottles & Sippers',
-    'Hostel Appliances',
-    'Electronics & Cables',
-    'Cycles & Mobility',
-    'Bedding & Furniture',
-    'Bedding & Mattress',
-    'Clothing & Lab Coats',
-    'Notes & Study Material',
-    'Stationery & Small Accessories',
-    'Stationery & Accessories',
-  ];
-  const customCategories = productCategories.filter(
-    (c) => !presetIds.includes(c) && !legacyAliases.includes(c)
-  );
 
   const userHostelDisplay = user ? user.hostel || user.hostelName : null;
 
@@ -323,10 +306,10 @@ const Home = () => {
 
             <Link
               to="/create-listing"
-              className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/60 dark:border-indigo-900/60 transition-all hover:shadow-xs"
+              className="text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl shadow-xs transition-all hover:scale-102 active:scale-98"
             >
               <PlusCircle className="w-3.5 h-3.5" />
-              <span>+ Custom Category</span>
+              <span>Sell Item</span>
             </Link>
           </div>
 
@@ -361,7 +344,7 @@ const Home = () => {
               )}
             </button>
 
-            {/* Preset Categories */}
+            {/* Preset Categories (Including Others) */}
             {PRESET_CATEGORIES.map((cat) => {
               const IconComponent = iconMap[cat.icon] || Tag;
               const isSelected = selectedCategory === cat.id;
@@ -390,41 +373,6 @@ const Home = () => {
                     }`}
                   >
                     {cat.name}
-                  </span>
-                  {isSelected && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400 mt-1" />
-                  )}
-                </button>
-              );
-            })}
-
-            {/* Custom Categories */}
-            {customCategories.map((customCat) => {
-              const isSelected = selectedCategory === customCat;
-              return (
-                <button
-                  key={customCat}
-                  type="button"
-                  onClick={() => setSelectedCategory(customCat)}
-                  className="flex flex-col items-center justify-center flex-shrink-0 group cursor-pointer focus:outline-none min-w-[64px] sm:min-w-[72px] py-1"
-                >
-                  <div
-                    className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition-all duration-200 ${
-                      isSelected
-                        ? 'bg-gradient-to-tr from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/30 scale-105 ring-2 ring-indigo-500 ring-offset-2 dark:ring-offset-slate-900'
-                        : 'bg-indigo-50/70 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/80 group-hover:scale-105'
-                    }`}
-                  >
-                    <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 transition-transform group-hover:scale-110" />
-                  </div>
-                  <span
-                    className={`text-xs sm:text-[13px] font-semibold mt-2.5 text-center transition-colors line-clamp-1 ${
-                      isSelected
-                        ? 'text-indigo-600 dark:text-indigo-400 font-bold'
-                        : 'text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
-                    }`}
-                  >
-                    {customCat}
                   </span>
                   {isSelected && (
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400 mt-1" />

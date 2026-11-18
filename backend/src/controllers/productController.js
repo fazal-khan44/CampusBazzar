@@ -46,6 +46,33 @@ const getProducts = async (req, res, next) => {
         query.category = { $in: ['Notes', 'Notes & Study Material'] };
       } else if (category === 'Sports & Gym Accessories' || category === 'Sports & Gym' || category === 'Sports') {
         query.category = { $in: ['Sports & Gym Accessories', 'Sports & Gym', 'Sports', 'Gym Accessories'] };
+      } else if (category === 'Others') {
+        const standardCategories = [
+          'Books',
+          'Notes',
+          'Notes & Study Material',
+          'Food & Snacks',
+          'Food & Munchies',
+          'Food & Snack',
+          'Bottles',
+          'Bottles & Sippers',
+          'Electronics',
+          'Electronics & Cables',
+          'Stationery',
+          'Stationery & Accessories',
+          'Stationery & Small Accessories',
+          'Sports & Gym Accessories',
+          'Sports & Gym',
+          'Sports',
+          'Gym Accessories',
+          'Appliances',
+          'Hostel Appliances',
+          'Cycles',
+          'Cycles & Mobility',
+          'Clothing',
+          'Clothing & Lab Coats',
+        ];
+        query.category = { $nin: standardCategories };
       } else {
         query.category = category;
       }

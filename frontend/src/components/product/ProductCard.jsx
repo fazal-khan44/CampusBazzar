@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Tag, MapPin, Building2, ArrowUpRight, Eye, Sparkles } from 'lucide-react';
+import { normalizeCategory } from '../../utils/categories';
 const ProductCard = ({ product, index = 0 }) => {
   const formatPrice = (amount) => {
     return new Intl.NumberFormat('en-IN', {
@@ -95,7 +96,7 @@ const ProductCard = ({ product, index = 0 }) => {
           <div className="flex items-center text-[10px] sm:text-xs text-indigo-600 dark:text-indigo-400 font-semibold mb-0.5 sm:mb-1.5">
             <div className="inline-flex items-center space-x-1 truncate max-w-full">
               <Tag className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 shrink-0" />
-              <span className="truncate">{product.category}</span>
+              <span className="truncate">{normalizeCategory(product.category)}</span>
             </div>
           </div>
 

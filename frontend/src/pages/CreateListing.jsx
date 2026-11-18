@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { PRESET_CATEGORIES } from '../utils/categories';
+import { PRESET_CATEGORIES, normalizeCategory } from '../utils/categories';
 import {
   ALL_CAMPUSES,
   getHostelsForCampus,
@@ -42,8 +42,7 @@ const CreateListing = () => {
     title: editingProduct?.title || '',
     description: editingProduct?.description || '',
     price: editingProduct?.price !== undefined ? editingProduct.price : '',
-    category: editingProduct?.category || PRESET_CATEGORIES[0].id,
-    customCategory: '',
+    category: editingProduct?.category ? normalizeCategory(editingProduct.category) : PRESET_CATEGORIES[0].id,
     condition: editingProduct?.condition || 'Gently Used',
     campus: defaultCampus,
     hostel: defaultHostel,
@@ -54,7 +53,6 @@ const CreateListing = () => {
       `${defaultCampus} • ${defaultHostel}${user?.roomNumber ? ` - Rm ${user.roomNumber}` : ''}`,
   });
 
-  const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [images, setImages] = useState(editingProduct?.images || []);
   const [imageUrlInput, setImageUrlInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -84,16 +82,6 @@ const CreateListing = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleCategoryChange = (e) => {
-    const val = e.target.value;
-    if (val === '__custom__') {
-      setIsCustomCategory(true);
-    } else {
-      setIsCustomCategory(false);
-      setFormData({ ...formData, category: val });
-    }
   };
 
   const handleFileUpload = (e) => {
@@ -130,9 +118,7 @@ const CreateListing = () => {
     e.preventDefault();
     setError('');
 
-    const resolvedCategory = isCustomCategory
-      ? formData.customCategory.trim()
-      : formData.category;
+    const resolvedCategory = formData.category || 'Others';
 
     if (!formData.title || !formData.description || formData.price === '') {
       setError('Please fill in title, description, and price');
@@ -237,50 +223,24 @@ const CreateListing = () => {
             />
           </div>
 
-          {/* Category Selector with Custom Category Button */}
+          {/* Category Selector */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                Category *
-              </label>
-              <button
-                type="button"
-                onClick={() => setIsCustomCategory(!isCustomCategory)}
-                className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center space-x-1"
-              >
-                <Tag className="w-3.5 h-3.5" />
-                <span>{isCustomCategory ? 'Pick preset category' : '+ Create Custom Category'}</span>
-              </button>
-            </div>
-
-            {isCustomCategory ? (
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  name="customCategory"
-                  value={formData.customCategory}
-                  onChange={handleChange}
-                  placeholder="Type your custom category (e.g. Badminton, Board Games, Skincare)..."
-                  className="w-full px-4 py-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm"
-                  required
-                  autoFocus
-                />
-              </div>
-            ) : (
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleCategoryChange}
-                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm"
-              >
-                {PRESET_CATEGORIES.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-                <option value="__custom__">✨ + Custom Category...</option>
-              </select>
-            )}
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+              Category *
+            </label>
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm"
+              required
+            >
+              {PRESET_CATEGORIES.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Condition & Price */}

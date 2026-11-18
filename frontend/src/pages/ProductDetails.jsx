@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
+import { normalizeCategory } from '../utils/categories';
 import {
   MapPin,
   Calendar,
@@ -192,7 +193,7 @@ const ProductDetails = () => {
             <div className="flex items-center justify-between">
               <span className="px-3.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 inline-flex items-center space-x-1">
                 <Tag className="w-3 h-3" />
-                <span>{product.category}</span>
+                <span>{normalizeCategory(product.category)}</span>
               </span>
               <span className="text-xs text-slate-500 flex items-center space-x-1">
                 <Calendar className="w-3.5 h-3.5" />
