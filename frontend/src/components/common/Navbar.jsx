@@ -81,11 +81,11 @@ const Navbar = () => {
 
   return (
     <header className="sticky top-0 z-50 glass border-b border-slate-200/80 dark:border-slate-800/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
         {/* Brand Logo - Highlighted when on Home page */}
         <Link
           to="/"
-          className={`flex items-center space-x-2.5 px-3 py-1.5 -ml-2 rounded-2xl transition-all duration-200 active:scale-95 group ${
+          className={`shrink-0 flex items-center space-x-2 sm:space-x-2.5 px-2 py-1 sm:px-3 sm:py-1.5 -ml-1 sm:-ml-2 rounded-2xl transition-all duration-200 active:scale-95 group ${
             isHomeActive
               ? 'bg-indigo-500/10 dark:bg-indigo-500/15 border border-indigo-500/25 dark:border-indigo-500/35 shadow-xs backdrop-blur-sm'
               : 'border border-transparent hover:bg-slate-100/80 dark:hover:bg-slate-800/60'
@@ -95,40 +95,40 @@ const Navbar = () => {
           <img
             src="/logo.png"
             alt="CampusBazzar"
-            className="h-10 w-10 rounded-xl object-cover shadow-md shadow-orange-500/20 group-hover:shadow-orange-500/40 transition-shadow"
+            className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl object-cover shadow-md shadow-orange-500/20 group-hover:shadow-orange-500/40 transition-shadow shrink-0"
           />
           <div>
-            <span className="text-xl font-bold">
+            <span className="text-base sm:text-xl font-bold tracking-tight block leading-tight">
               <span className="text-[#1a2f5a] dark:text-white">Campus</span>
               <span className="text-orange-500">Bazzar</span>
             </span>
-            <span className="block text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold -mt-1">
+            <span className="hidden sm:block text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold -mt-0.5">
               Student-to-Student Marketplace
             </span>
           </div>
         </Link>
 
         {/* Action Controls */}
-        <div className="flex items-center space-x-2 sm:space-x-3">
+        <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
           {/* Dark/Light Mode Toggle */}
           <button
             onClick={toggleTheme}
             aria-label="Toggle Theme"
-            className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-600 dark:text-slate-300 transition-all hover:scale-105 active:scale-95"
+            className="p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-600 dark:text-slate-300 transition-all hover:scale-105 active:scale-95 shrink-0"
           >
             {theme === 'dark' ? (
-              <Sun className="w-5 h-5 text-amber-400 animate-fade-in" />
+              <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 animate-fade-in" />
             ) : (
-              <Moon className="w-5 h-5 text-indigo-600 animate-fade-in" />
+              <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 animate-fade-in" />
             )}
           </button>
 
           {user ? (
             <>
-              {/* Sell an Item button */}
+              {/* Sell an Item button - Desktop */}
               <Link
                 to="/create-listing"
-                className={`hidden sm:inline-flex items-center space-x-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200 ${
+                className={`hidden sm:inline-flex items-center space-x-2 px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200 shrink-0 ${
                   isSellActive
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/40 ring-2 ring-indigo-400/50'
                     : 'bg-indigo-600/10 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white border border-indigo-200 dark:border-indigo-800'
@@ -138,11 +138,11 @@ const Navbar = () => {
                 <span>Sell Item</span>
               </Link>
 
-              {/* My Listings link */}
+              {/* My Listings link - Desktop */}
               <NavLink
                 to="/my-listings"
                 className={({ isActive }) =>
-                  `hidden md:flex px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 items-center space-x-1.5 ${
+                  `hidden md:flex px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 items-center space-x-1.5 shrink-0 ${
                     isActive
                       ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                       : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -165,15 +165,23 @@ const Navbar = () => {
                 to="/chat?tab=global"
                 className={
                   location.pathname === '/chat' && location.search.includes('tab=global')
-                    ? 'px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center space-x-1.5 bg-orange-500 text-white shadow-md shadow-orange-500/30'
-                    : 'px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center space-x-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center space-x-1.5 bg-orange-500 text-white shadow-md shadow-orange-500/30 shrink-0'
+                    : 'p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center space-x-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0'
                 }
                 title="Global Campus Chat"
               >
-                <Globe className="w-4 h-4 text-orange-500" />
+                <div className="relative flex items-center">
+                  <Globe className="w-4 h-4 text-orange-500" />
+                  {onlineCount > 0 && (
+                    <span className="sm:hidden absolute -top-1 -right-1.5 flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                  )}
+                </div>
                 <span className="hidden md:inline">Global Chat</span>
                 {onlineCount > 0 && (
-                  <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 ml-0.5">
+                  <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 ml-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-1"></span>
                     {onlineCount}
                   </span>
@@ -185,8 +193,8 @@ const Navbar = () => {
                 to="/chat"
                 className={
                   location.pathname === '/chat' && !location.search.includes('tab=global')
-                    ? 'px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center space-x-1.5 bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                    : 'px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center space-x-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? 'p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center space-x-1.5 bg-indigo-600 text-white shadow-md shadow-indigo-600/30 shrink-0'
+                    : 'p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center space-x-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0'
                 }
                 title="Direct Chats"
               >
@@ -194,17 +202,17 @@ const Navbar = () => {
                 <span className="hidden md:inline">Chats</span>
               </NavLink>
 
-              {/* User Dropdown Menu (on hover) */}
+              {/* User Dropdown Menu */}
               <div
                 ref={menuContainerRef}
-                className="relative"
+                className="relative shrink-0"
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
               >
                 <button
                   type="button"
                   onClick={() => setMenuOpen((prev) => !prev)}
-                  className={`px-2.5 py-1.5 rounded-2xl transition-all duration-200 flex items-center space-x-2 border group ${
+                  className={`p-1 sm:px-2.5 sm:py-1.5 rounded-2xl transition-all duration-200 flex items-center space-x-1.5 sm:space-x-2 border group ${
                     location.pathname === '/profile'
                       ? 'bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30'
                       : 'hover:bg-slate-100 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-200 border-transparent hover:border-slate-200 dark:hover:border-slate-700'
@@ -221,9 +229,9 @@ const Navbar = () => {
                         )}&background=F27A1A&color=fff&size=80`
                       }
                       alt={user.name}
-                      className="w-8 h-8 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700"
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700"
                     />
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 absolute -bottom-0.5 -right-0.5" />
+                    <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-500 border-2 border-white dark:border-slate-900 absolute -bottom-0.5 -right-0.5" />
                   </div>
                   <div className="hidden xl:flex flex-col text-left pr-0.5">
                     <span className="text-xs font-bold leading-tight truncate max-w-[110px]">
@@ -234,7 +242,7 @@ const Navbar = () => {
                     </span>
                   </div>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform duration-200 ${
+                    className={`hidden sm:block w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform duration-200 ${
                       menuOpen ? 'rotate-180' : ''
                     }`}
                   />
@@ -243,7 +251,7 @@ const Navbar = () => {
                 {/* Dropdown Menu for Logged In User */}
                 {menuOpen && (
                   <div className="absolute right-0 top-full pt-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-                    <div className="w-56 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md p-1.5 ring-1 ring-black/5 focus:outline-none">
+                    <div className="w-52 sm:w-56 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md p-1.5 ring-1 ring-black/5 focus:outline-none">
                       <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-700/60 mb-1">
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
                           {user.name}
@@ -252,6 +260,17 @@ const Navbar = () => {
                           {user.email || 'Campus User'}
                         </p>
                       </div>
+
+                      {/* Sell Item visible on mobile in dropdown */}
+                      <Link
+                        to="/create-listing"
+                        onClick={closeMenu}
+                        className="sm:hidden flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 transition-colors"
+                        role="menuitem"
+                      >
+                        <PlusCircle className="w-4 h-4 text-indigo-500" />
+                        <span>Sell an Item</span>
+                      </Link>
 
                       <Link
                         to="/profile"
@@ -314,7 +333,7 @@ const Navbar = () => {
           ) : (
             <div
               ref={menuContainerRef}
-              className="relative"
+              className="relative shrink-0"
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
             >
@@ -322,7 +341,7 @@ const Navbar = () => {
               <button
                 type="button"
                 onClick={() => navigate('/login')}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200 border group ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 border group shrink-0 ${
                   location.pathname === '/login'
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/40 ring-2 ring-indigo-400/50 border-indigo-600'
                     : 'bg-indigo-600/10 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white border-indigo-200 dark:border-indigo-800'
@@ -330,10 +349,10 @@ const Navbar = () => {
                 aria-haspopup="true"
                 aria-expanded={menuOpen}
               >
-                <User className="w-4 h-4" />
+                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>Login</span>
                 <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  className={`hidden sm:inline-block w-3.5 h-3.5 transition-transform duration-200 ${
                     menuOpen ? 'rotate-180' : ''
                   }`}
                 />
@@ -342,11 +361,11 @@ const Navbar = () => {
               {/* Dropdown Menu for Guest User */}
               {menuOpen && (
                 <div className="absolute right-0 top-full pt-1.5 z-50 animate-in fade-in slide-in-from-top-1 duration-150">
-                  <div className="w-56 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md p-1.5 ring-1 ring-black/5 focus:outline-none">
+                  <div className="w-48 sm:w-56 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-700/90 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md p-1.5 ring-1 ring-black/5 focus:outline-none">
                     <Link
                       to="/login"
                       onClick={closeMenu}
-                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700/70 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-slate-700/70 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                       role="menuitem"
                     >
                       <LogIn className="w-4 h-4 text-indigo-500" />
@@ -356,7 +375,7 @@ const Navbar = () => {
                     <a
                       href="mailto:campusbazzar4@gmail.com"
                       onClick={closeMenu}
-                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-700/70 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-orange-50 dark:hover:bg-slate-700/70 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
                       role="menuitem"
                     >
                       <HelpCircle className="w-4 h-4 text-orange-500" />

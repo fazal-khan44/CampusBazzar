@@ -43,7 +43,7 @@ const MyListings = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-6 sm:py-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
@@ -63,14 +63,14 @@ const MyListings = () => {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-pulse">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6 animate-pulse">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
-              className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 space-y-4"
+              className="bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-slate-200 dark:border-slate-800 space-y-2 sm:space-y-4"
             >
-              <div className="aspect-4/3 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-              <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4" />
+              <div className="aspect-square sm:aspect-4/3 bg-slate-200 dark:bg-slate-800 rounded-lg sm:rounded-xl" />
+              <div className="h-3 sm:h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4" />
             </div>
           ))}
         </div>
@@ -91,7 +91,7 @@ const MyListings = () => {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
           {listings.map((product) => (
             <ProductCard key={product._id} product={product} />
           ))}

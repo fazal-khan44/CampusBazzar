@@ -9,7 +9,6 @@ import {
   ALL_CAMPUSES,
   getHostelsForCampus,
   CAMPUS_NAMES,
-  isGirlsHostelName,
 } from '../utils/nitpLocations';
 import {
   Search,
@@ -218,7 +217,7 @@ const Home = () => {
       </section>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-6">
         {/* Campus & Hostel Location Controls */}
         <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs mb-6 space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -304,7 +303,7 @@ const Home = () => {
                 </option>
                 {availableHostels.map((h) => (
                   <option key={h.name} value={h.name}>
-                    {h.name} {h.isGirlsHostel ? '🌸 (Girls)' : ''}
+                    {h.name}
                   </option>
                 ))}
               </select>
@@ -465,16 +464,16 @@ const Home = () => {
 
         {/* Product Cards Grid */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
               <div
                 key={i}
-                className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 animate-pulse space-y-4"
+                className="bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl p-2 sm:p-4 border border-slate-200/80 dark:border-slate-800 animate-pulse space-y-2 sm:space-y-4"
               >
-                <div className="aspect-4/3 bg-slate-200 dark:bg-slate-800 rounded-xl" />
-                <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-3/4" />
-                <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded-md w-1/2" />
-                <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-md w-1/3 pt-4" />
+                <div className="aspect-square sm:aspect-4/3 bg-slate-200 dark:bg-slate-800 rounded-lg sm:rounded-xl" />
+                <div className="h-3 sm:h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-3/4" />
+                <div className="h-2.5 sm:h-3 bg-slate-200 dark:bg-slate-800 rounded-md w-1/2" />
+                <div className="h-4 sm:h-6 bg-slate-200 dark:bg-slate-800 rounded-md w-1/3 pt-2 sm:pt-4" />
               </div>
             ))}
           </div>
@@ -498,7 +497,7 @@ const Home = () => {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-6 animate-fade-in">
             {sortedProducts.map((product, idx) => (
               <ProductCard key={product._id} product={product} index={idx} />
             ))}

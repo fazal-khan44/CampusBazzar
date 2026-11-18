@@ -216,7 +216,7 @@ const Register = () => {
                 >
                   {currentHostels.map((h) => (
                     <option key={h.name} value={h.name}>
-                      {h.name} {h.isGirlsHostel ? '🌸 (Girls Hostel)' : ''}
+                      {h.name}
                     </option>
                   ))}
                 </select>

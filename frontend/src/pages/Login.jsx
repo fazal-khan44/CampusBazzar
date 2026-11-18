@@ -928,7 +928,7 @@ const Login = () => {
                   >
                     {directHostels.map((h) => (
                       <option key={h.name} value={h.name}>
-                        {h.name} {h.isGirlsHostel ? '🌸 (Girls)' : ''}
+                        {h.name}
                       </option>
                     ))}
                   </select>
@@ -1278,7 +1278,7 @@ const Login = () => {
                       <option value="Campus Seller / Day Scholar">General Campus Seller / Day Scholar</option>
                       {sellerHostels.map((h) => (
                         <option key={h.name} value={h.name}>
-                          {h.name} {h.isGirlsHostel ? '🌸 (Girls)' : ''}
+                          {h.name}
                         </option>
                       ))}
                     </select>

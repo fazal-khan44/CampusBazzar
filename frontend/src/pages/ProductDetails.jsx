@@ -3,7 +3,6 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
-import { isGirlsHostelName } from '../utils/nitpLocations';
 import {
   MapPin,
   Calendar,
@@ -19,6 +18,8 @@ import {
   Loader2,
   Edit,
   GraduationCap,
+  Lock,
+  LogIn,
 } from 'lucide-react';
 
 const ProductDetails = () => {
@@ -135,9 +136,7 @@ const ProductDetails = () => {
 
   const campus = product.campus || product.seller?.campus || 'Patna Campus';
   const hostel = product.hostel || product.hostelName || product.seller?.hostel || 'Hostel';
-  const room = product.roomNumber || product.seller?.roomNumber || 'N/A';
   const phone = product.contactNumber || product.seller?.phoneNumber;
-  const isGirls = isGirlsHostelName(hostel);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
@@ -224,11 +223,11 @@ const ProductDetails = () => {
               </p>
             </div>
 
-            {/* Prominent Pickup Location Card */}
+            {/* Campus & Hostel Location Card */}
             <div className="mt-6 p-5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-900/60 space-y-3">
               <div className="flex items-center space-x-2 text-indigo-900 dark:text-indigo-300 font-bold text-xs uppercase tracking-wider">
                 <MapPin className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <span>Pickup Location & Campus Details</span>
+                <span>Campus & Hostel Location</span>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
@@ -246,110 +245,145 @@ const ProductDetails = () => {
                     Hostel
                   </span>
                   <span className="font-extrabold text-slate-900 dark:text-white truncate block">
-                    🏠 {hostel} {isGirls ? '🌸' : ''}
+                    🏠 {hostel}
                   </span>
                 </div>
-              </div>
-
-              <div className="pt-2 border-t border-indigo-100 dark:border-indigo-900/40 flex items-center justify-between text-xs text-slate-700 dark:text-slate-300">
-                <span className="font-semibold">Room: {room}</span>
-                {product.pickupLocation && (
-                  <span className="text-slate-500 text-[11px] truncate max-w-[60%]">
-                    {product.pickupLocation}
-                  </span>
-                )}
               </div>
             </div>
 
-            {/* Seller Contact Card */}
-            <div className="mt-6 p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <img
-                    src={
-                      product.seller?.avatar ||
-                      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'
-                    }
-                    alt={product.seller?.name}
-                    className="w-12 h-12 rounded-full object-cover ring-2 ring-indigo-500/30"
-                  />
-                  <span
-                    className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 ${
-                      product.seller?._id && isUserOnline(product.seller._id)
-                        ? 'bg-emerald-500'
-                        : 'bg-slate-400'
-                    }`}
-                    title={
-                      product.seller?._id && isUserOnline(product.seller._id)
-                        ? 'Seller is Online'
-                        : 'Seller is Offline'
-                    }
-                  />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
-                    <h4 className="font-bold text-slate-900 dark:text-white">
-                      {product.seller?.name || 'Fellow Hosteller'}
-                    </h4>
-                    <ShieldCheck className="w-4 h-4 text-emerald-500" title="Verified Campus Resident" />
-                    {product.seller?.isEmailVerified && (
-                      <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30" title="Verified Student">
-                        <GraduationCap className="w-3 h-3" />
-                        <span>Verified Student</span>
-                      </span>
-                    )}
-                    {product.seller?.isPhoneVerified && (
-                      <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30" title="Phone Verified">
-                        <Phone className="w-3 h-3" />
-                        <span>Phone Verified</span>
-                      </span>
-                    )}
-                    {product.seller?._id && isUserOnline(product.seller._id) ? (
-                      <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span>Active Now</span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20">
-                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                        <span>Offline</span>
-                      </span>
-                    )}
+            {/* Seller Contact Card / Protected for Non-Logged-In Users */}
+            {!user ? (
+              <div
+                onClick={() => navigate('/login')}
+                className="mt-6 p-5 rounded-2xl bg-gradient-to-br from-indigo-50/90 via-white to-purple-50/90 dark:from-indigo-950/40 dark:via-slate-900 dark:to-purple-950/40 border border-indigo-200 dark:border-indigo-800 shadow-xs hover:border-indigo-500/80 dark:hover:border-indigo-500/80 hover:shadow-lg hover:shadow-indigo-500/10 transition-all cursor-pointer group active:scale-[0.99]"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate('/login');
+                  }
+                }}
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center group-hover:scale-105 transition-transform shrink-0 shadow-md shadow-indigo-600/30">
+                    <Lock className="w-6 h-6" />
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    {product.seller?.hostel || hostel} • {product.seller?.campus || campus}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                      <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors text-sm sm:text-base">
+                        Seller Details & Contact
+                      </h4>
+                      <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                        Login Required
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Seller identity, contact number, and chat are protected. Sign in to view and connect.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3.5 border-t border-indigo-100 dark:border-indigo-900/60 flex items-center justify-between">
+                  <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 group-hover:underline">
+                    <LogIn className="w-4 h-4" />
+                    <span>Click here to Login & View Seller Details &rarr;</span>
+                  </span>
+                  <span className="text-[11px] text-slate-400 hidden sm:inline">
+                    NIT Patna Campus
+                  </span>
                 </div>
               </div>
+            ) : (
+              <div className="mt-6 p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <img
+                      src={
+                        product.seller?.avatar ||
+                        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'
+                      }
+                      alt={product.seller?.name}
+                      className="w-12 h-12 rounded-full object-cover ring-2 ring-indigo-500/30"
+                    />
+                    <span
+                      className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 ${
+                        product.seller?._id && isUserOnline(product.seller._id)
+                          ? 'bg-emerald-500'
+                          : 'bg-slate-400'
+                      }`}
+                      title={
+                        product.seller?._id && isUserOnline(product.seller._id)
+                          ? 'Seller is Online'
+                          : 'Seller is Offline'
+                      }
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
+                      <h4 className="font-bold text-slate-900 dark:text-white">
+                        {product.seller?.name || 'Fellow Hosteller'}
+                      </h4>
+                      <ShieldCheck className="w-4 h-4 text-emerald-500" title="Verified Campus Resident" />
+                      {product.seller?.isEmailVerified && (
+                        <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30" title="Verified Student">
+                          <GraduationCap className="w-3 h-3" />
+                          <span>Verified Student</span>
+                        </span>
+                      )}
+                      {product.seller?.isPhoneVerified && (
+                        <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30" title="Phone Verified">
+                          <Phone className="w-3 h-3" />
+                          <span>Phone Verified</span>
+                        </span>
+                      )}
+                      {product.seller?._id && isUserOnline(product.seller._id) ? (
+                        <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          <span>Active Now</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-500/10 text-slate-500 dark:text-slate-400 border border-slate-500/20">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                          <span>Offline</span>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      {product.seller?.hostel || hostel} • {product.seller?.campus || campus}
+                    </p>
+                  </div>
+                </div>
 
-              {/* Direct Contact Buttons */}
-              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-2">
-                {phone && (
-                  <a
-                    href={`tel:${phone}`}
-                    className="flex-1 inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-md shadow-emerald-600/20 transition-all"
-                  >
-                    <Phone className="w-4 h-4" />
-                    <span>Call ({phone})</span>
-                  </a>
-                )}
+                {/* Direct Contact Buttons */}
+                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-2">
+                  {phone && (
+                    <a
+                      href={`tel:${phone}`}
+                      className="flex-1 inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-md shadow-emerald-600/20 transition-all"
+                    >
+                      <Phone className="w-4 h-4" />
+                      <span>Call ({phone})</span>
+                    </a>
+                  )}
 
-                {!isOwner && (
-                  <button
-                    onClick={handleConnectChat}
-                    disabled={chatLoading}
-                    className="flex-1 inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-md shadow-indigo-600/30 transition-all active:scale-98"
-                  >
-                    {chatLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <MessageSquare className="w-4 h-4" />
-                    )}
-                    <span>Connect on Chat</span>
-                  </button>
-                )}
+                  {!isOwner && (
+                    <button
+                      onClick={handleConnectChat}
+                      disabled={chatLoading}
+                      className="flex-1 inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-md shadow-indigo-600/30 transition-all active:scale-98"
+                    >
+                      {chatLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <MessageSquare className="w-4 h-4" />
+                      )}
+                      <span>Connect on Chat</span>
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Owner Management Controls */}
