@@ -20,6 +20,9 @@ services:
         sync: false
       - key: RAZORPAY_KEY_SECRET
         sync: false
+      # Brevo API Key (Recommended: 300 free emails/day to any recipient without domain verification)
+      - key: BREVO_API_KEY
+        sync: false
       # Resend API key for production email delivery (get free key at https://resend.com)
       - key: RESEND_API_KEY
         sync: false
