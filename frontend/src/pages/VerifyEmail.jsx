@@ -22,6 +22,7 @@ const VerifyEmail = () => {
   const emailParam = queryParams.get('email') || location.state?.email || '';
 
   const [email, setEmail] = useState(emailParam);
+  const [devOtp, setDevOtp] = useState(location.state?.devOtp || '');
   const [digits, setDigits] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState(location.state?.message || '');
@@ -128,6 +129,9 @@ const VerifyEmail = () => {
       const res = await resendEmailOtp(email.trim());
       if (res.success) {
         setSuccessMsg(res.message || 'A new verification code has been dispatched to your email.');
+        if (res.devOtp) {
+          setDevOtp(res.devOtp);
+        }
         setCooldown(60);
         setDigits(['', '', '', '', '', '']);
         inputRefs.current[0]?.focus();
@@ -171,6 +175,34 @@ const VerifyEmail = () => {
           <div className="mb-6 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs flex items-center space-x-2">
             <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
             <span>{successMsg}</span>
+          </div>
+        )}
+
+        {/* Fallback OTP Card */}
+        {devOtp && (
+          <div className="mb-6 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs space-y-2">
+            <div className="flex items-center space-x-2 font-bold text-amber-800 dark:text-amber-300">
+              <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>Instant Verification Code</span>
+            </div>
+            <p className="text-[11px] text-amber-700 dark:text-amber-300">
+              If your college server is delaying external emails, here is your 6-digit verification code:
+            </p>
+            <div className="flex items-center justify-between bg-white dark:bg-slate-900 rounded-xl p-2.5 border border-amber-200 dark:border-amber-900/60">
+              <span className="font-mono text-xl font-black tracking-widest text-orange-600 dark:text-orange-400">
+                {devOtp}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const d = devOtp.toString().split('').slice(0, 6);
+                  setDigits(d);
+                }}
+                className="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold transition-all"
+              >
+                Auto-fill
+              </button>
+            </div>
           </div>
         )}
 

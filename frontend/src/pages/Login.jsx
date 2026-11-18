@@ -1420,6 +1420,30 @@ const Login = () => {
                   </p>
                 </div>
 
+                {forgotDevOtp && (
+                  <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs space-y-2">
+                    <div className="flex items-center space-x-2 font-bold text-amber-800 dark:text-amber-300">
+                      <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>Instant Verification Code</span>
+                    </div>
+                    <p className="text-[11px] text-amber-700 dark:text-amber-300">
+                      If your college server is delaying external emails, here is your 6-digit code:
+                    </p>
+                    <div className="flex items-center justify-between bg-white dark:bg-slate-900 rounded-xl p-2.5 border border-amber-200 dark:border-amber-900/60">
+                      <span className="font-mono text-xl font-black tracking-widest text-indigo-600 dark:text-indigo-400">
+                        {forgotDevOtp}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setForgotOtp(forgotDevOtp)}
+                        className="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all"
+                      >
+                        Auto-fill
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* 6 Digit OTP input */}
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">

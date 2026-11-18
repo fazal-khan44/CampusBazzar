@@ -14,25 +14,63 @@ try {
 }
 
 /**
- * Send Email via Resend API (production) or Nodemailer SMTP (local dev fallback).
+ * Universal Email Sender for CampusBazzar
  *
- * Production (Render):  Set RESEND_API_KEY env var → uses Resend HTTP API (reliable from any cloud server).
- * Local Dev:            Set EMAIL_USER + EMAIL_PASS env vars → uses Nodemailer + Gmail SMTP.
- *
- * Required env vars for Resend:
- *   RESEND_API_KEY     — API key from https://resend.com/api-keys
- *   EMAIL_FROM         — (optional) Sender, defaults to "CampusBazzar <onboarding@resend.dev>"
- *
- * Required env vars for Nodemailer (local dev fallback):
- *   EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_FROM
+ * Strategy 1: Nodemailer with Gmail SMTP (direct sending to all domains without restrictions)
+ * Strategy 2: Resend HTTP API (cloud-native fallback if SMTP ports are blocked)
  */
 const sendEmail = async ({ to, subject, html, text }) => {
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASS;
   const resendApiKey = process.env.RESEND_API_KEY;
 
-  // ─── Strategy 1: Resend API (preferred for production / cloud servers) ───
-  if (resendApiKey && Resend) {
-    const from = process.env.EMAIL_FROM || 'CampusBazzar <onboarding@resend.dev>';
+  let lastError = null;
+
+  // ─── 1. Primary Strategy: Gmail SMTP via Nodemailer ───
+  if (nodemailer && user && pass) {
     try {
+      const from = process.env.EMAIL_FROM || `"CampusBazzar NIT Patna" <${user}>`;
+      
+      // Use service: 'gmail' which automatically configures optimal SSL port (465) & host for Gmail
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user,
+          pass,
+        },
+        tls: {
+          rejectUnauthorized: false,
+        },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+      });
+
+      const info = await transporter.sendMail({
+        from,
+        to,
+        subject,
+        text: text || '',
+        html: html || '',
+      });
+
+      console.log(`[SMTP Gmail OK] Email delivered to ${to} (MessageId: ${info.messageId})`);
+      return { success: true, messageId: info.messageId, provider: 'gmail-smtp' };
+    } catch (smtpErr) {
+      console.warn(`[SMTP Gmail Warning] Failed for ${to} (${smtpErr.message}). Attempting fallback...`);
+      lastError = smtpErr.message;
+    }
+  }
+
+  // ─── 2. Secondary Strategy: Resend HTTP API ───
+  if (resendApiKey && Resend) {
+    try {
+      let from = process.env.EMAIL_FROM || 'CampusBazzar <onboarding@resend.dev>';
+      // Resend will reject any 'from' address with @gmail.com or unverified domain
+      if (!from.includes('@resend.dev') && !from.includes('.resend.app')) {
+        from = 'CampusBazzar <onboarding@resend.dev>';
+      }
+
       const resend = new Resend(resendApiKey);
       const { data, error } = await resend.emails.send({
         from,
@@ -43,61 +81,24 @@ const sendEmail = async ({ to, subject, html, text }) => {
       });
 
       if (error) {
-        console.error(`[Resend Error] Failed to send email to ${to}:`, error.message || JSON.stringify(error));
-        return { success: false, error: error.message || 'Resend API error' };
+        console.error(`[Resend Error] Failed for ${to}:`, error.message || JSON.stringify(error));
+        lastError = error.message || 'Resend API error';
+      } else {
+        console.log(`[Resend OK] Email sent to ${to} (ID: ${data?.id})`);
+        return { success: true, messageId: data?.id, provider: 'resend' };
       }
-
-      console.log(`[Resend OK] Email sent to ${to} (ID: ${data?.id})`);
-      return { success: true, messageId: data?.id };
-    } catch (err) {
-      console.error(`[Resend Error] Exception sending email to ${to}:`, err.message);
-      return { success: false, error: err.message };
+    } catch (resendErr) {
+      console.error(`[Resend Exception] Error sending to ${to}:`, resendErr.message);
+      lastError = resendErr.message;
     }
   }
 
-  // ─── Strategy 2: Nodemailer SMTP (local dev with Gmail App Password) ───
-  const host = process.env.EMAIL_HOST || 'smtp.gmail.com';
-  const port = process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT, 10) : 587;
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASS;
-  const from = process.env.EMAIL_FROM || `"CampusBazzar NIT Patna" <${user}>`;
-
-  if (!nodemailer || !user || !pass) {
-    console.warn(`[EMAIL WARNING] No RESEND_API_KEY and no EMAIL_USER/EMAIL_PASS configured. Email to: ${to} | Subject: ${subject}`);
-    return { success: false, simulated: true, error: 'Email credentials not configured (set RESEND_API_KEY or EMAIL_USER+EMAIL_PASS)' };
-  }
-
-  try {
-    const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: {
-        user,
-        pass,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
-    });
-
-    const info = await transporter.sendMail({
-      from,
-      to,
-      subject,
-      text: text || '',
-      html: html || '',
-    });
-
-    console.log(`[SMTP OK] Email sent to ${to} (ID: ${info.messageId})`);
-    return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error(`[SMTP Error] Failed to send email to ${to}:`, error.message);
-    return { success: false, error: error.message };
-  }
+  // ─── If both failed or unconfigured ───
+  console.error(`[EMAIL DISPATCH FAILED] Neither SMTP nor Resend could deliver to ${to}. Error: ${lastError || 'No credentials'}`);
+  return {
+    success: false,
+    error: lastError || 'Email credentials not configured or dispatch rejected',
+  };
 };
 
 module.exports = sendEmail;

@@ -1168,7 +1168,7 @@ const sendOtp = async (req, res, next) => {
         });
       } catch (emailErr) {
         console.error('[sendOtp] Failed to deliver email:', emailErr.message);
-        emailResult = { success: false };
+        emailResult = { success: false, error: emailErr.message };
       }
     } else if (process.env.SMS_API_KEY) {
       try {
@@ -1181,12 +1181,17 @@ const sendOtp = async (req, res, next) => {
       }
     }
 
+    const isEmailSent = isEmail ? emailResult?.success === true : true;
+
     res.json({
       success: true,
       message: isEmail
-        ? `A 6-digit password reset code has been sent to ${cleanIdentifier}. Please check your inbox (and spam folder).`
+        ? (isEmailSent
+            ? `A 6-digit password reset code has been sent to ${cleanIdentifier}. Please check your inbox (and spam folder).`
+            : `Could not deliver email to ${cleanIdentifier} directly. Your verification code is: ${otp}`)
         : `OTP sent successfully to ******${cleanIdentifier.slice(-4)}! Valid for 10 minutes.`,
       identifier: cleanIdentifier,
+      ...(!isEmailSent ? { devOtp: otp } : {}),
     });
   } catch (error) {
     next(error);
