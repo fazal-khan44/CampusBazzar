@@ -35,7 +35,7 @@ services:
       - key: FRONTEND_URL
         value: https://campusbazzar-1.onrender.com
       - key: BACKEND_URL
-        value: https://campusbazzar-backend.onrender.com
+        value: https://campusbazzar.onrender.com
 
   # 2. Frontend React / Vite Static Site
   - type: web
@@ -45,6 +45,9 @@ services:
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://campusbazzar.onrender.com/api
     routes:
       - type: rewrite
         source: /*
