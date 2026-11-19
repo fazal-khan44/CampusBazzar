@@ -228,10 +228,10 @@ const ProductDetails = () => {
             <div className="mt-6 p-5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/70 dark:border-indigo-900/60 space-y-3">
               <div className="flex items-center space-x-2 text-indigo-900 dark:text-indigo-300 font-bold text-xs uppercase tracking-wider">
                 <MapPin className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <span>Campus & Hostel Location</span>
+                <span>{user ? 'Campus & Hostel Location' : 'Campus Location'}</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className={`grid ${user ? 'grid-cols-2' : 'grid-cols-1'} gap-3 text-xs`}>
                 <div className="p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-indigo-100 dark:border-indigo-900/40">
                   <span className="text-slate-500 block text-[10px] uppercase font-bold">
                     Campus
@@ -241,14 +241,16 @@ const ProductDetails = () => {
                   </span>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-indigo-100 dark:border-indigo-900/40">
-                  <span className="text-slate-500 block text-[10px] uppercase font-bold">
-                    Hostel
-                  </span>
-                  <span className="font-extrabold text-slate-900 dark:text-white truncate block">
-                    🏠 {hostel}
-                  </span>
-                </div>
+                {user && (
+                  <div className="p-2.5 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-indigo-100 dark:border-indigo-900/40">
+                    <span className="text-slate-500 block text-[10px] uppercase font-bold">
+                      Hostel
+                    </span>
+                    <span className="font-extrabold text-slate-900 dark:text-white truncate block">
+                      🏠 {hostel}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

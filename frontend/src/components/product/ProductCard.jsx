@@ -2,7 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Tag, MapPin, Building2, ArrowUpRight, Eye, Sparkles } from 'lucide-react';
 import { normalizeCategory } from '../../utils/categories';
+import { useAuth } from '../../context/AuthContext';
+
 const ProductCard = ({ product, index = 0 }) => {
+  const { user } = useAuth();
   const formatPrice = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -113,14 +116,16 @@ const ProductCard = ({ product, index = 0 }) => {
 
         {/* Location Section */}
         <div className="mt-1.5 sm:mt-3.5 py-1 sm:py-2 px-1.5 sm:px-3 rounded-lg sm:rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/80 group-hover:border-indigo-200/60 dark:group-hover:border-indigo-800/60 group-hover:bg-indigo-50/40 dark:group-hover:bg-indigo-950/20 transition-all duration-300 space-y-0.5 text-[9px] sm:text-[11px]">
-          <div className="hidden sm:flex items-center space-x-1.5 text-indigo-600 dark:text-indigo-400 font-bold truncate">
-            <MapPin className="w-3.5 h-3.5 shrink-0" />
+          <div className="flex items-center space-x-1 sm:space-x-1.5 text-indigo-600 dark:text-indigo-400 font-bold truncate">
+            <MapPin className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 shrink-0" />
             <span className="truncate">{campus}</span>
           </div>
-          <div className="flex items-center space-x-1 sm:space-x-1.5 text-slate-700 dark:text-slate-300 font-medium truncate">
-            <Building2 className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-slate-400 shrink-0" />
-            <span className="truncate">{hostel}</span>
-          </div>
+          {user && (
+            <div className="flex items-center space-x-1 sm:space-x-1.5 text-slate-700 dark:text-slate-300 font-medium truncate">
+              <Building2 className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 text-slate-400 shrink-0" />
+              <span className="truncate">{hostel}</span>
+            </div>
+          )}
         </div>
 
         {/* Price & Pickup Spot Footer */}
