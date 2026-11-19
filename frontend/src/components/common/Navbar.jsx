@@ -81,6 +81,8 @@ const Navbar = () => {
 
   const isSellActive = location.pathname === '/create-listing';
   const isHomeActive = location.pathname === '/';
+  const isGlobalChatActive = location.pathname === '/chat' && location.search.includes('tab=global');
+  const isDirectChatActive = location.pathname === '/chat' && !location.search.includes('tab=global');
 
   return (
     <header className="sticky top-0 z-50 glass border-b border-slate-200/80 dark:border-slate-800/80">
@@ -167,14 +169,14 @@ const Navbar = () => {
               <NavLink
                 to="/chat?tab=global"
                 className={
-                  location.pathname === '/chat' && location.search.includes('tab=global')
+                  isGlobalChatActive
                     ? 'p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center space-x-1.5 bg-orange-500 text-white shadow-md shadow-orange-500/30 shrink-0'
                     : 'p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center space-x-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0'
                 }
                 title="Global Campus Chat"
               >
                 <div className="relative flex items-center">
-                  <Globe className="w-4 h-4 text-orange-500" />
+                  <Globe className={`w-4 h-4 ${isGlobalChatActive ? 'text-white' : 'text-orange-500'}`} />
                   {globalUnread > 0 ? (
                     <span className="sm:hidden absolute -top-1.5 -right-2 px-1 text-[9px] font-black rounded-full bg-rose-500 text-white leading-tight min-w-[15px] text-center shadow-xs">
                       {globalUnread > 99 ? '99+' : globalUnread}
@@ -188,8 +190,12 @@ const Navbar = () => {
                 </div>
                 <span className="hidden md:inline">Global Chat</span>
                 {onlineCount > 0 && (
-                  <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 ml-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-1"></span>
+                  <span className={`hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold rounded-full ml-0.5 ${
+                    isGlobalChatActive
+                      ? 'bg-white/20 text-white border border-white/30'
+                      : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full mr-1 ${isGlobalChatActive ? 'bg-white' : 'bg-emerald-500 animate-pulse'}`}></span>
                     {onlineCount}
                   </span>
                 )}
@@ -204,14 +210,14 @@ const Navbar = () => {
               <NavLink
                 to="/chat"
                 className={
-                  location.pathname === '/chat' && !location.search.includes('tab=global')
+                  isDirectChatActive
                     ? 'p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center space-x-1.5 bg-indigo-600 text-white shadow-md shadow-indigo-600/30 shrink-0'
                     : 'p-2 sm:px-3 sm:py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center space-x-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0'
                 }
                 title="Direct Chats"
               >
                 <div className="relative flex items-center">
-                  <MessageSquare className="w-4 h-4 text-indigo-500" />
+                  <MessageSquare className={`w-4 h-4 ${isDirectChatActive ? 'text-white' : 'text-indigo-500'}`} />
                   {totalUnread > 0 && (
                     <span className="sm:hidden absolute -top-1.5 -right-2 px-1 text-[9px] font-black rounded-full bg-rose-500 text-white leading-tight min-w-[15px] text-center shadow-xs">
                       {totalUnread > 99 ? '99+' : totalUnread}

@@ -53,16 +53,25 @@ const ChatPage = () => {
   const [globalMsgInput, setGlobalMsgInput] = useState('');
   const [globalLoading, setGlobalLoading] = useState(false);
 
-  const messagesEndRef = useRef(null);
-  const globalMessagesEndRef = useRef(null);
+  const directMessagesContainerRef = useRef(null);
+  const globalMessagesContainerRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (directMessagesContainerRef.current) {
+      directMessagesContainerRef.current.scrollTop = directMessagesContainerRef.current.scrollHeight;
+    }
   };
 
   const scrollToGlobalBottom = () => {
-    globalMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (globalMessagesContainerRef.current) {
+      globalMessagesContainerRef.current.scrollTop = globalMessagesContainerRef.current.scrollHeight;
+    }
   };
+
+  // Ensure window stays at top so sticky navbar never overlaps chat page
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  }, [location.pathname, location.search]);
 
   // Sync mode with query param changes
   useEffect(() => {
@@ -302,7 +311,7 @@ const ChatPage = () => {
   const isOtherUserOnline = otherUser?._id ? isUserOnline(otherUser._id) : false;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 h-[calc(100vh-5rem)] flex flex-col">
+    <div className="max-w-6xl mx-auto w-full px-3 sm:px-6 pt-3 pb-3 sm:pt-4 sm:pb-4 h-[calc(100dvh-4.25rem)] flex flex-col">
       {/* Main Container */}
       <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden flex flex-col md:flex-row">
         
@@ -344,7 +353,7 @@ const ChatPage = () => {
             </div>
 
             {/* Global Messages Stream */}
-            <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4">
+            <div ref={globalMessagesContainerRef} className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4">
               {globalLoading ? (
                 <div className="text-center py-20 text-slate-400 text-sm">
                   Loading campus messages...
@@ -437,7 +446,6 @@ const ChatPage = () => {
                   );
                 })
               )}
-              <div ref={globalMessagesEndRef} />
             </div>
 
             {/* Global Message Input Bar */}
@@ -689,7 +697,7 @@ const ChatPage = () => {
                   </div>
 
                   {/* Chat Messages Area */}
-                  <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/20 dark:bg-slate-950/30">
+                  <div ref={directMessagesContainerRef} className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/20 dark:bg-slate-950/30">
                     {messages.length === 0 ? (
                       <div className="text-center py-12 text-xs text-slate-400">
                         <p>No messages yet.</p>
@@ -759,7 +767,6 @@ const ChatPage = () => {
                         );
                       })
                     )}
-                    <div ref={messagesEndRef} />
                   </div>
 
                   {/* Message Input Box */}
