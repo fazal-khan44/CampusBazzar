@@ -70,6 +70,8 @@ const ChatPage = () => {
     if (tab === 'global') {
       setChatMode('global');
       markGlobalRead();
+    } else {
+      setChatMode('direct');
     }
   }, [location.search, markGlobalRead]);
 
@@ -301,83 +303,6 @@ const ChatPage = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 h-[calc(100vh-5rem)] flex flex-col">
-      {/* Top Main Mode Switcher Tabs */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-xs">
-          <button
-            onClick={() => {
-              setChatMode('global');
-              markGlobalRead();
-              navigate('/chat?tab=global', { replace: true });
-            }}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              chatMode === 'global'
-                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Globe className="w-4 h-4" />
-            <span>Campus Global Chat</span>
-            {globalUnread > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-xs">
-                {globalUnread > 99 ? '99+' : globalUnread}
-              </span>
-            )}
-            <span
-              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black ${
-                chatMode === 'global'
-                  ? 'bg-white/20 text-white'
-                  : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-              }`}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1"></span>
-              {onlineCount} Online
-            </span>
-          </button>
-
-          <button
-            onClick={() => {
-              setChatMode('direct');
-              navigate('/chat', { replace: true });
-            }}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              chatMode === 'direct'
-                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>Direct Chats (P2P)</span>
-            {totalUnread > 0 ? (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-xs">
-                {totalUnread > 99 ? '99+' : totalUnread}
-              </span>
-            ) : conversations.length > 0 ? (
-              <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  chatMode === 'direct'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                }`}
-              >
-                {conversations.length}
-              </span>
-            ) : null}
-          </button>
-        </div>
-
-        {/* Global Live Presence Indicator */}
-        <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs shadow-xs">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-          </span>
-          <span className="font-semibold text-slate-700 dark:text-slate-300">
-            {onlineCount} {onlineCount === 1 ? 'Registered User' : 'Registered Users'} Active
-          </span>
-        </div>
-      </div>
-
       {/* Main Container */}
       <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden flex flex-col md:flex-row">
         
@@ -480,7 +405,6 @@ const ChatPage = () => {
 
                           <span className="text-[10px] text-slate-400 dark:text-slate-500">
                             • {msg.sender?.hostelName || 'Campus'}
-                            {msg.sender?.roomNumber ? ` (Rm ${msg.sender.roomNumber})` : ''}
                           </span>
 
                           {senderOnline && (
@@ -745,7 +669,6 @@ const ChatPage = () => {
                         </div>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400">
                           {otherUser?.hostelName || 'Campus'}
-                          {otherUser?.roomNumber ? ` • Room ${otherUser?.roomNumber}` : ''}
                         </p>
                       </div>
                     </div>
