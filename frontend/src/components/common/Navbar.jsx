@@ -22,7 +22,7 @@ import {
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { onlineCount } = useSocket();
+  const { onlineCount, totalUnread, globalUnread, markGlobalRead } = useSocket();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -74,7 +74,10 @@ const Navbar = () => {
 
   useEffect(() => {
     closeMenu();
-  }, [location.pathname]);
+    if (location.pathname === '/chat' && location.search.includes('tab=global')) {
+      markGlobalRead();
+    }
+  }, [location.pathname, location.search, markGlobalRead]);
 
   const isSellActive = location.pathname === '/create-listing';
   const isHomeActive = location.pathname === '/';
@@ -160,7 +163,7 @@ const Navbar = () => {
                 )}
               </NavLink>
 
-              {/* Global Campus Chat Link with Active Users Count */}
+              {/* Global Campus Chat Link with Active Users Count and Unread Badge */}
               <NavLink
                 to="/chat?tab=global"
                 className={
@@ -172,12 +175,16 @@ const Navbar = () => {
               >
                 <div className="relative flex items-center">
                   <Globe className="w-4 h-4 text-orange-500" />
-                  {onlineCount > 0 && (
+                  {globalUnread > 0 ? (
+                    <span className="sm:hidden absolute -top-1.5 -right-2 px-1 text-[9px] font-black rounded-full bg-rose-500 text-white leading-tight min-w-[15px] text-center shadow-xs">
+                      {globalUnread > 99 ? '99+' : globalUnread}
+                    </span>
+                  ) : onlineCount > 0 ? (
                     <span className="sm:hidden absolute -top-1 -right-1.5 flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
-                  )}
+                  ) : null}
                 </div>
                 <span className="hidden md:inline">Global Chat</span>
                 {onlineCount > 0 && (
@@ -186,9 +193,14 @@ const Navbar = () => {
                     {onlineCount}
                   </span>
                 )}
+                {globalUnread > 0 && (
+                  <span className="hidden sm:inline-flex items-center px-1.5 py-0.2 text-[10px] font-extrabold rounded-full bg-rose-500 text-white ml-0.5 shadow-xs">
+                    {globalUnread > 99 ? '99+' : globalUnread}
+                  </span>
+                )}
               </NavLink>
 
-              {/* Live Chats Link */}
+              {/* Live Chats Link with Unread Badge */}
               <NavLink
                 to="/chat"
                 className={
@@ -198,8 +210,20 @@ const Navbar = () => {
                 }
                 title="Direct Chats"
               >
-                <MessageSquare className="w-4 h-4 text-indigo-500" />
+                <div className="relative flex items-center">
+                  <MessageSquare className="w-4 h-4 text-indigo-500" />
+                  {totalUnread > 0 && (
+                    <span className="sm:hidden absolute -top-1.5 -right-2 px-1 text-[9px] font-black rounded-full bg-rose-500 text-white leading-tight min-w-[15px] text-center shadow-xs">
+                      {totalUnread > 99 ? '99+' : totalUnread}
+                    </span>
+                  )}
+                </div>
                 <span className="hidden md:inline">Chats</span>
+                {totalUnread > 0 && (
+                  <span className="hidden sm:inline-flex items-center px-1.5 py-0.2 text-[10px] font-extrabold rounded-full bg-rose-500 text-white ml-0.5 shadow-xs">
+                    {totalUnread > 99 ? '99+' : totalUnread}
+                  </span>
+                )}
               </NavLink>
 
               {/* User Dropdown Menu */}

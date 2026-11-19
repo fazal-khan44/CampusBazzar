@@ -86,6 +86,17 @@ io.on('connection', (socket) => {
     io.to(data.conversationId).emit('receive_message', data);
   });
 
+  // Notify the recipient of a new unread message
+  socket.on('notify_unread', ({ recipientId, conversationId }) => {
+    if (!recipientId || !conversationId) return;
+    const rid = recipientId.toString();
+    if (onlineUsers.has(rid)) {
+      onlineUsers.get(rid).forEach((sid) => {
+        io.to(sid).emit('new_unread', { conversationId });
+      });
+    }
+  });
+
   socket.on('disconnect', () => {
     if (socket.userId && onlineUsers.has(socket.userId)) {
       const userSockets = onlineUsers.get(socket.userId);

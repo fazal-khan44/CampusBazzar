@@ -81,6 +81,23 @@ const getMessages = async (req, res, next) => {
       return res.status(403).json({ message: 'Not authorized to view these messages' });
     }
 
+    // Mark messages not sent by current user as read
+    await Message.updateMany(
+      {
+        conversationId,
+        sender: { $ne: req.user._id },
+        readBy: { $ne: req.user._id },
+      },
+      { $addToSet: { readBy: req.user._id } }
+    );
+
+    if (req.app.get('io')) {
+      req.app.get('io').to(conversationId).emit('messages_read', {
+        conversationId,
+        readBy: req.user._id,
+      });
+    }
+
     const messages = await Message.find({ conversationId })
       .populate('sender', 'name avatar')
       .sort({ createdAt: 1 });
@@ -129,6 +146,20 @@ const sendMessage = async (req, res, next) => {
     // Socket.io emission if global io is available
     if (req.app.get('io')) {
       req.app.get('io').to(conversationId).emit('receive_message', populatedMsg);
+
+      // Notify the other participant about new unread message
+      const recipientId = conversation.participants.find(
+        (id) => id.toString() !== req.user._id.toString()
+      );
+      if (recipientId) {
+        const onlineUsers = req.app.get('onlineUsers') || new Map();
+        const rid = recipientId.toString();
+        if (onlineUsers.has(rid)) {
+          onlineUsers.get(rid).forEach((sid) => {
+            req.app.get('io').to(sid).emit('new_unread', { conversationId });
+          });
+        }
+      }
     }
 
     res.status(201).json(populatedMsg);
@@ -152,6 +183,15 @@ const getGlobalMessages = async (req, res, next) => {
       .populate('sender', 'name avatar hostelName roomNumber collegeEmail isNitpStudent')
       .sort({ createdAt: -1 })
       .limit(100);
+
+    // Mark unread global messages as read by current user
+    await GlobalMessage.updateMany(
+      {
+        sender: { $ne: req.user._id },
+        readBy: { $ne: req.user._id },
+      },
+      { $addToSet: { readBy: req.user._id } }
+    );
 
     // Return in chronological order
     res.json(messages.reverse());
@@ -259,6 +299,118 @@ const getOnlineStats = async (req, res, next) => {
   }
 };
 
+// @desc    Mark all messages in a conversation as read by current user
+// @route   PUT /api/chat/messages/read/:conversationId
+// @access  Private
+const markMessagesRead = async (req, res, next) => {
+  try {
+    const { conversationId } = req.params;
+    const userId = req.user._id;
+
+    // Verify participant
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
+      return res.status(404).json({ message: 'Conversation not found' });
+    }
+    const isMember = conversation.participants.some(
+      (id) => id.toString() === userId.toString()
+    );
+    if (!isMember) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Add userId to readBy for all messages not sent by this user
+    await Message.updateMany(
+      {
+        conversationId,
+        sender: { $ne: userId },
+        readBy: { $ne: userId },
+      },
+      { $addToSet: { readBy: userId } }
+    );
+
+    // Notify via socket that messages were read
+    if (req.app.get('io')) {
+      req.app.get('io').to(conversationId).emit('messages_read', {
+        conversationId,
+        readBy: userId,
+      });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Mark all global messages as read by current user
+// @route   PUT /api/chat/global/read
+// @access  Private
+const markGlobalRead = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    await GlobalMessage.updateMany(
+      {
+        sender: { $ne: userId },
+        readBy: { $ne: userId },
+      },
+      { $addToSet: { readBy: userId } }
+    );
+    res.json({ success: true });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get unread message counts per conversation for current user
+// @route   GET /api/chat/unread-counts
+// @access  Private
+const getUnreadCounts = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+
+    // Find all conversations of this user
+    const conversations = await Conversation.find({ participants: userId }).select('_id');
+    const convIds = conversations.map((c) => c._id);
+
+    // For each conversation, count messages not sent by user and not in readBy
+    const counts = await Message.aggregate([
+      {
+        $match: {
+          conversationId: { $in: convIds },
+          sender: { $ne: userId },
+          readBy: { $ne: userId },
+        },
+      },
+      {
+        $group: {
+          _id: '$conversationId',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Build map { conversationId: count }
+    const result = {};
+    counts.forEach((c) => {
+      result[c._id.toString()] = c.count;
+    });
+
+    // Count unread global messages
+    const globalCount = await GlobalMessage.countDocuments({
+      sender: { $ne: userId },
+      readBy: { $ne: userId },
+    });
+
+    res.json({
+      conversations: result,
+      global: globalCount,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   startOrGetConversation,
   getUserConversations,
@@ -268,4 +420,7 @@ module.exports = {
   sendGlobalMessage,
   resetGlobalMessages,
   getOnlineStats,
+  markMessagesRead,
+  markGlobalRead,
+  getUnreadCounts,
 };

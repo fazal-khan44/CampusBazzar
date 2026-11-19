@@ -16,11 +16,23 @@ import {
   Users,
   GraduationCap,
   Sparkles,
+  Check,
+  CheckCheck,
 } from 'lucide-react';
 
 const ChatPage = () => {
   const { user } = useAuth();
-  const { socket, onlineCount, onlineUserIds, isUserOnline } = useSocket();
+  const {
+    socket,
+    onlineCount,
+    onlineUserIds,
+    isUserOnline,
+    markConversationRead,
+    unreadCounts,
+    totalUnread,
+    globalUnread,
+    markGlobalRead,
+  } = useSocket();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -57,8 +69,9 @@ const ChatPage = () => {
     const tab = new URLSearchParams(location.search).get('tab');
     if (tab === 'global') {
       setChatMode('global');
+      markGlobalRead();
     }
-  }, [location.search]);
+  }, [location.search, markGlobalRead]);
 
   // Fetch all direct conversations of user
   useEffect(() => {
@@ -154,6 +167,8 @@ const ChatPage = () => {
     };
 
     fetchMessages();
+    // Mark as read when conversation is opened
+    markConversationRead(activeConv._id);
 
     if (socket) {
       socket.emit('join_conversation', activeConv._id);
@@ -164,14 +179,33 @@ const ChatPage = () => {
             if (prev.some((m) => m._id === msg._id)) return prev;
             return [...prev, msg];
           });
+          // Mark as read immediately since we're viewing this conversation
+          markConversationRead(activeConv._id);
+        }
+      };
+
+      // Update read status on our sent messages when recipient reads them
+      const handleMessagesRead = ({ conversationId }) => {
+        if (conversationId === activeConv._id) {
+          setMessages((prev) =>
+            prev.map((m) => {
+              const senderId = m.sender?._id || m.sender;
+              if (senderId?.toString() === user._id?.toString()) {
+                return { ...m, readByOther: true };
+              }
+              return m;
+            })
+          );
         }
       };
 
       socket.on('receive_message', handleReceive);
+      socket.on('messages_read', handleMessagesRead);
 
       return () => {
         socket.emit('leave_conversation', activeConv._id);
         socket.off('receive_message', handleReceive);
+        socket.off('messages_read', handleMessagesRead);
       };
     }
   }, [activeConv, socket, chatMode]);
@@ -273,6 +307,7 @@ const ChatPage = () => {
           <button
             onClick={() => {
               setChatMode('global');
+              markGlobalRead();
               navigate('/chat?tab=global', { replace: true });
             }}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
@@ -283,6 +318,11 @@ const ChatPage = () => {
           >
             <Globe className="w-4 h-4" />
             <span>Campus Global Chat</span>
+            {globalUnread > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-xs">
+                {globalUnread > 99 ? '99+' : globalUnread}
+              </span>
+            )}
             <span
               className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black ${
                 chatMode === 'global'
@@ -308,7 +348,11 @@ const ChatPage = () => {
           >
             <MessageSquare className="w-4 h-4" />
             <span>Direct Chats (P2P)</span>
-            {conversations.length > 0 && (
+            {totalUnread > 0 ? (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white shadow-xs">
+                {totalUnread > 99 ? '99+' : totalUnread}
+              </span>
+            ) : conversations.length > 0 ? (
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                   chatMode === 'direct'
@@ -318,7 +362,7 @@ const ChatPage = () => {
               >
                 {conversations.length}
               </span>
-            )}
+            ) : null}
           </button>
         </div>
 
@@ -541,11 +585,15 @@ const ChatPage = () => {
                     const participant = getOtherParticipant(conv);
                     const isSelected = activeConv?._id === conv._id;
                     const participantOnline = participant?._id ? isUserOnline(participant._id) : false;
+                    const convUnread = unreadCounts[conv._id] || 0;
 
                     return (
                       <button
                         key={conv._id}
-                        onClick={() => setActiveConv(conv)}
+                        onClick={() => {
+                          setActiveConv(conv);
+                          markConversationRead(conv._id);
+                        }}
                         className={`w-full p-4 flex items-start space-x-3 text-left transition-colors ${
                           isSelected
                             ? 'bg-indigo-50/60 dark:bg-indigo-950/30 border-l-4 border-indigo-600'
@@ -578,14 +626,21 @@ const ChatPage = () => {
                             <h4 className="font-semibold text-sm text-slate-900 dark:text-white truncate">
                               {participant.name}
                             </h4>
-                            {conv.lastMessage?.createdAt && (
-                              <span className="text-[10px] text-slate-400 shrink-0">
-                                {new Date(conv.lastMessage.createdAt).toLocaleDateString([], {
-                                  month: 'short',
-                                  day: 'numeric',
-                                })}
-                              </span>
-                            )}
+                            <div className="flex items-center space-x-1.5 shrink-0">
+                              {convUnread > 0 && (
+                                <span className="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-black min-w-[18px] text-center shadow-xs">
+                                  {convUnread > 99 ? '99+' : convUnread}
+                                </span>
+                              )}
+                              {conv.lastMessage?.createdAt && (
+                                <span className="text-[10px] text-slate-400">
+                                  {new Date(conv.lastMessage.createdAt).toLocaleDateString([], {
+                                    month: 'short',
+                                    day: 'numeric',
+                                  })}
+                                </span>
+                              )}
+                            </div>
                           </div>
 
                           {/* Online Status Label & Hostel */}
@@ -614,7 +669,13 @@ const ChatPage = () => {
                           )}
 
                           {/* Last message preview */}
-                          <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                          <p
+                            className={`text-xs truncate ${
+                              convUnread > 0
+                                ? 'font-bold text-slate-900 dark:text-slate-100'
+                                : 'text-slate-500 dark:text-slate-400'
+                            }`}
+                          >
                             {conv.lastMessage?.text || 'Started a conversation...'}
                           </p>
                         </div>
@@ -716,6 +777,15 @@ const ChatPage = () => {
                     ) : (
                       messages.map((m) => {
                         const isMe = m.sender?._id === user._id || m.sender === user._id;
+                        const isReadByOther = Boolean(
+                          m.readByOther ||
+                          (m.readBy && m.readBy.some((id) => {
+                            const readId = typeof id === 'object' && id?._id ? id._id.toString() : id?.toString();
+                            const myId = user._id.toString();
+                            return readId && readId !== myId;
+                          }))
+                        );
+
                         return (
                           <div
                             key={m._id}
@@ -729,16 +799,38 @@ const ChatPage = () => {
                               }`}
                             >
                               <p className="break-words">{m.text}</p>
-                              <span
-                                className={`block text-[10px] mt-1 text-right ${
+                              <div
+                                className={`flex items-center justify-end space-x-1.5 text-[10px] mt-1 ${
                                   isMe ? 'text-indigo-200' : 'text-slate-400'
                                 }`}
                               >
-                                {new Date(m.createdAt).toLocaleTimeString([], {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                              </span>
+                                <span>
+                                  {new Date(m.createdAt).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </span>
+                                {isMe && (
+                                  <span
+                                    className={`inline-flex items-center space-x-0.5 font-medium ml-1 ${
+                                      isReadByOther ? 'text-sky-300' : 'text-indigo-200/80'
+                                    }`}
+                                    title={isReadByOther ? 'Read by recipient' : 'Sent / Unread'}
+                                  >
+                                    {isReadByOther ? (
+                                      <>
+                                        <CheckCheck className="w-3.5 h-3.5 text-sky-300" />
+                                        <span>Read</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Check className="w-3.5 h-3.5 text-indigo-200/80" />
+                                        <span>Unread</span>
+                                      </>
+                                    )}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         );
