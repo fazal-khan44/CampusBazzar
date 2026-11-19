@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +19,9 @@ import {
   Tag,
   Upload,
   MapPin,
+  Camera,
+  SwitchCamera,
+  X,
 } from 'lucide-react';
 
 const CreateListing = () => {
@@ -54,9 +57,86 @@ const CreateListing = () => {
   });
 
   const [images, setImages] = useState(editingProduct?.images || []);
-  const [imageUrlInput, setImageUrlInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Camera states
+  const [cameraActive, setCameraActive] = useState(false);
+  const [facingMode, setFacingMode] = useState('environment'); // 'user' or 'environment'
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const cameraInputRef = useRef(null);
+
+  const startCamera = async (mode = facingMode) => {
+    // If browser doesn't support getUserMedia (e.g. non-secure origin), fallback directly to native camera input
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      cameraInputRef.current?.click();
+      return;
+    }
+    try {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: mode,
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      });
+      streamRef.current = stream;
+      setCameraActive(true);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.warn('Camera stream error, falling back to device camera input:', err);
+      // Fallback directly to native camera capture
+      cameraInputRef.current?.click();
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    setCameraActive(false);
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    setImages((prev) => [...prev, dataUrl]);
+    stopCamera();
+  };
+
+  const toggleCameraFacing = () => {
+    const nextMode = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(nextMode);
+    startCamera(nextMode);
+  };
+
+  useEffect(() => {
+    if (cameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [cameraActive]);
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
 
   // Handle campus switch & dynamically reset hostel
   const handleCampusChange = (e) => {
@@ -101,13 +181,6 @@ const CreateListing = () => {
       };
       reader.readAsDataURL(file);
     });
-  };
-
-  const handleAddImageUrl = () => {
-    if (imageUrlInput.trim()) {
-      setImages([...images, imageUrlInput.trim()]);
-      setImageUrlInput('');
-    }
   };
 
   const handleRemoveImage = (index) => {
@@ -409,7 +482,7 @@ const CreateListing = () => {
           {/* Image Upload Feature */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-              Product Images (Upload Photo or Paste Link)
+              Product Images (Upload Photo or Take Picture)
             </label>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
@@ -428,24 +501,27 @@ const CreateListing = () => {
                 />
               </label>
 
-              <div className="flex flex-col justify-center space-y-2">
-                <div className="flex space-x-2">
-                  <input
-                    type="url"
-                    value={imageUrlInput}
-                    onChange={(e) => setImageUrlInput(e.target.value)}
-                    placeholder="Or paste direct image URL..."
-                    className="flex-1 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddImageUrl}
-                    className="px-3 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-xs transition-all hover:bg-indigo-500"
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => startCamera()}
+                className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 rounded-2xl p-4 cursor-pointer bg-slate-50/50 dark:bg-slate-800/30 transition-colors group"
+              >
+                <Camera className="w-6 h-6 text-indigo-500 mb-1 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                  Take Picture with Camera
+                </span>
+                <span className="text-[11px] text-slate-400 mt-0.5">Use camera directly</span>
+              </button>
+
+              {/* Direct camera fallback input for mobile */}
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
             </div>
 
             {images.length > 0 && (
@@ -486,6 +562,79 @@ const CreateListing = () => {
           </button>
         </form>
       </div>
+
+      {/* Live Camera Viewfinder Modal */}
+      {cameraActive && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-3xl overflow-hidden max-w-md w-full shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="px-4 py-3 flex items-center justify-between border-b border-slate-800 bg-slate-900/90">
+              <div className="flex items-center space-x-2 text-white font-bold text-sm">
+                <Camera className="w-4 h-4 text-indigo-400" />
+                <span>Take Product Photo</span>
+              </div>
+              <button
+                type="button"
+                onClick={stopCamera}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                title="Close Camera"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Video Viewfinder */}
+            <div className="relative aspect-4/3 bg-black flex items-center justify-center overflow-hidden">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-4 pointer-events-none border border-white/25 rounded-2xl flex items-center justify-center">
+                <span className="text-[11px] text-white/60 bg-black/40 px-2 py-0.5 rounded-md">
+                  Align product inside frame
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="p-4 bg-slate-900 flex items-center justify-between gap-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={toggleCameraFacing}
+                className="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 transition-all flex items-center space-x-1.5 text-xs font-semibold"
+                title="Switch between front and back camera"
+              >
+                <SwitchCamera className="w-4 h-4" />
+                <span className="hidden sm:inline">Flip</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={capturePhoto}
+                className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-sm shadow-lg shadow-indigo-600/40 flex items-center justify-center space-x-2 active:scale-95 transition-all"
+              >
+                <Camera className="w-5 h-5" />
+                <span>Capture</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  stopCamera();
+                  cameraInputRef.current?.click();
+                }}
+                className="p-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all text-xs font-semibold"
+                title="Open system camera app"
+              >
+                Native
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
